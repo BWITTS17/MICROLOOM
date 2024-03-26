@@ -182,17 +182,43 @@ Backhomemin();
 // Direction control is built into the runMotor function, so steps should be positive (+) and negative (-) to indicate direction
 
 // Bank1 Movement Function
-void moveBank1 (int steps) {
-  runMotor (0, steps);
-  runMotor (1, steps);
-  delayMicroseconds (1);
+void moveBank1 (int stepsToRun) {
+
+  if (stepsToRun > 0){
+    steppers[0].setDirection(1);
+    steppers[1].setDirection(1);
+  } else{
+    steppers[0].setDirection(0);
+    steppers[1].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
+
+  for (int step = 0; step < stepsToRun; step++){
+    steppers[0].step();
+    steppers[1].step();
+    Serial.println(step);
+    delayMicroseconds (stepPeriodsUs[0]);
+  }
 }
 
 // Bank2 Movement Function
-void moveBank2 (int steps) {
-  runMotor (2, steps);
-  runMotor (3, steps);
-  delayMicroseconds (1);
+void moveBank2 (int stepsToRun) {
+
+  if (stepsToRun > 0){
+    steppers[2].setDirection(1);
+    steppers[3].setDirection(1);
+  } else{
+    steppers[2].setDirection(0);
+    steppers[3].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
+
+  for (int step = 0; step < stepsToRun; step++){
+    steppers[2].step();
+    steppers[3].step();
+    Serial.println(step);
+    delayMicroseconds (stepPeriodsUs[3]);
+  }
 }
 
 // H1 Movement Function
