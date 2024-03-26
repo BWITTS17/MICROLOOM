@@ -29,8 +29,8 @@
 // 9-10:  Remaining Harnesses (10 = Third Harness || 11 = Fourth Harness)
 
 const int numOfSteppers = 11; //number of stepper motors
-const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35}; //Chip select pins for per motor, see Motor IDs Overview
-const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500}; //Step periods per motor (ms)
+const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35, 36}; //Chip select pins for per motor, see Motor IDs Overview
+const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 15000}; //Step periods per motor (ms)
 const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
 
 //Microstepping mode per motor
@@ -361,7 +361,7 @@ void Reedhomemin(){ //Homemin function
             // Limit switch is not pressed, move the motors continuously
             positions[0] = positions[0] + 1; // Add one step to motor 0
             positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveBeatUp(1);
+            moveBeatUp(-1);
         }
     } while (state == LOW);
 
