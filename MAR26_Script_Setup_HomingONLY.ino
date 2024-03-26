@@ -2,7 +2,7 @@
 #include <DRV8434S.h>
 #include <ezButton.h>
 #include <math.h>
-//test
+
 //MATYAS'S NOTES ON THINGS TO VERIFY
 // Ensure that limit switch debounce time intialization is correct
 // Verify use of motorID index values (does ID array start at index of 0 or 1...)
