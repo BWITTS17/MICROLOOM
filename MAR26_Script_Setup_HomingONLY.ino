@@ -29,8 +29,8 @@
 // 9-10:  Remaining Harnesses (10 = Third Harness || 11 = Fourth Harness)
 
 const int numOfSteppers = 11; //number of stepper motors
-const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35, 36}; //Chip select pins for per motor, see Motor IDs Overview
-const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 15000}; //Step periods per motor (ms)
+const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35}; //Chip select pins for per motor, see Motor IDs Overview
+const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500}; //Step periods per motor (ms)
 const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
 
 //Microstepping mode per motor
@@ -78,7 +78,7 @@ bool weavingActive = false;
 bool error = false;
 
 //Pick counter variables
-int totalPicks = 0;    //Change this to chose fabric length  
+int totalPicks = 10;    //Change this to chose fabric length  
 int currentPick = 1;   //Do not change, always 1
 
 //
@@ -87,13 +87,19 @@ const int WEAVING_LED_PIN = 11; // Example pin number for the weaving LED
 
 
 
-//SYSTEM POSITIONING VARIABLES/VECTORS
-//Variable distance step count vector
-int h1StepsVect = 0;     //h1 shed height vector
-int h2StepsVect = 0;     //h2 shed height vector
-int h3StepsVect = 0;     //h3 shed height vector
-int h4StepsVect = 0;     //h4 shed height vector
-int bank2TensioningLocationVect = 0;  //bank 2 warp tensioning distance vector
+//SYSTEM POSITIONING VARIABLES/Array
+//Variable distance step count array
+//h1 shed height array
+int h1StepsArray =   {679.00, 281.00, 210.00};     
+//h2 shed height array
+int h2StepsArray =   {701.00, 289.00, 216.00}, {700.00, 289.00, 216.00}, {698.00, 288.00, 215.00}, {697.00, 287.00, 215.00}, {695.00, 286.00, 214.00}, {693.00, 285.00, 214.00}, {690.00, 285.00, 212.00}, {688.00, 283.00, 212.00};
+
+//h3 shed height array
+int h3StepsVect = 0;     
+//h4 shed height array
+int h4StepsVect = 0;     
+//bank 2 warp tensioning distance array
+int bank2TensioningLocationArray = {81.00, 81.00, 78.00}, {83.00, 82.00, 80.00}, {84.00, 84.00, 82.00}, {86.00, 86.00, 83.00}, {88.00, 88.00, 86.00}, {90.00, 90.00, 88.00}, {93.00, 93.00, 91.00}, {96.00, 96.00, 94.00};  
 
 //Fixed distance step counts
 int pickDistance = 0;   //steps for picking distance
@@ -105,6 +111,7 @@ int numberOfIncrements = 50;
 
 
 void setup() {
+  Serial.begin();
   SPI.begin();
  
  // Initialization of SPI/driver functions. Detailed descriptions here -> https://pololu.github.io/drv8434s-arduino/class_d_r_v8434_s.html#ac9909297f589d0a3660535e22ec2e11f
@@ -182,43 +189,17 @@ Backhomemin();
 // Direction control is built into the runMotor function, so steps should be positive (+) and negative (-) to indicate direction
 
 // Bank1 Movement Function
-void moveBank1 (int stepsToRun) {
-
-  if (stepsToRun > 0){
-    steppers[0].setDirection(1);
-    steppers[1].setDirection(1);
-  } else{
-    steppers[0].setDirection(0);
-    steppers[1].setDirection(0);
-    stepsToRun = - stepsToRun;
-  }
-
-  for (int step = 0; step < stepsToRun; step++){
-    steppers[0].step();
-    steppers[1].step();
-    Serial.println(step);
-    delayMicroseconds (stepPeriodsUs[0]);
-  }
+void moveBank1 (int steps) {
+  runMotor (0, steps);
+  runMotor (1, steps);
+  delayMicroseconds (1);
 }
 
 // Bank2 Movement Function
-void moveBank2 (int stepsToRun) {
-
-  if (stepsToRun > 0){
-    steppers[2].setDirection(1);
-    steppers[3].setDirection(1);
-  } else{
-    steppers[2].setDirection(0);
-    steppers[3].setDirection(0);
-    stepsToRun = - stepsToRun;
-  }
-
-  for (int step = 0; step < stepsToRun; step++){
-    steppers[2].step();
-    steppers[3].step();
-    Serial.println(step);
-    delayMicroseconds (stepPeriodsUs[3]);
-  }
+void moveBank2 (int steps) {
+  runMotor (2, steps);
+  runMotor (3, steps);
+  delayMicroseconds (1);
 }
 
 // H1 Movement Function
@@ -387,7 +368,7 @@ void Reedhomemin(){ //Homemin function
             // Limit switch is not pressed, move the motors continuously
             positions[0] = positions[0] + 1; // Add one step to motor 0
             positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveBeatUp(-1);
+            moveBeatUp(1);
         }
     } while (state == LOW);
 
@@ -443,6 +424,73 @@ void pickingHoming() {
 // }
 
 
+
+void weaving (numberOfPicks, totalNumberOfPicks, h1StepsArray, h2StepsArray, bank2TensioningLocationArray) {
+
+  indexNumber = roundf(numberOfPicks/75);  //Do this to shorten the size of harness vectors, 
+
+  for (int j = 0; j < 3; j++) {
+    h2SingleLine[1][3] = h2[indexNumber][j]);
+  }
+  for (int j = 0; j < 3; j++) {
+    h2SingleLine[1][3] = h2[indexNumber][j]);
+  }
+
+  sheddingThreeStepsBoring(h1StepsArray, h2StepsArray(indexNumber), warpStepsArray(indexNumber));
+
+  numberOfPicks++;
+
+  if (numberOfPicks < totalNumberOfPicks) {
+    weaving(numberOfPicks, totalNumberOfPicks, h1StepsArray, h2StepsArray, bank2TensioningLocationArray);
+  } else {
+    Serial.println((STRING)"Weaving is finished, "+numberOfPicks+" out of "+totalNumberOfPicks+" completed.")
+  }
+}
+
+void firstPick () {
+  //First pick distances IN STEPS
+  h1FirstPick = {475.00, 197.00, 147.00};   //steps from neutral axis to H1 first pick height
+  h2FirstPick = {484.00, 200.00, 150.00};     //steps from neutral axis to H2 first pick height
+
+  warpFirstPick = {32.00, 32.00, 31.00};      //steps from warp tensioner start position to first pick position
+
+  sheddingThreeStepsBoring(h1FirstPick, h2FirstPick, warpFirstPick, numberOfIncrements);
+  Serial.println("picking happens here, if someone codes it **vomit**"); //picking code goes here
+  sheddingThreeStepsBoring(-h1FirstPick, -h2FirstPick, -warpFirstPick, numberOfIncrements);
+  Serial.println("first pick is done woohoo! balls.")
+}
+
+void sheddingThreeStepsBoring(h1Steps, h2Steps, warpSteps)  {  
+  if h1Steps > 0 {
+    //First Increment 
+    moveH1(h1Steps(1)));
+    moveH2(h2Steps(1));
+    moveBank2(warpSteps(1)));
+    //Second increment
+    moveH1(h1Steps(2));
+    moveH2(h2Steps(2));
+    moveBank2(warpSteps(2));
+    //Third increment
+    moveH1(h1Steps(3));
+    moveH2(h2Steps(3));
+    moveBank2(warpSteps(3));
+=  } else if (h1Steps < 0) {
+    //Third increment
+    moveH1(-h1Steps(3));
+    moveH2(-h2Steps(3));
+    moveBank2(-warpSteps(3));
+    //Second increment
+    moveH1(-h1Steps(2));
+    moveH2(-h2Steps(2));
+    moveBank2(-warpSteps(2));
+    //First Increment 
+    moveH1(-h1Steps(1));
+    moveH2(-h2Steps(1));
+    moveBank2(-warpSteps(1));
+  } else {
+    error = true;
+  }
+}
 
 
 
