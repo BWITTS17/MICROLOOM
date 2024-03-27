@@ -189,17 +189,42 @@ Backhomemin();
 // Direction control is built into the runMotor function, so steps should be positive (+) and negative (-) to indicate direction
 
 // Bank1 Movement Function
-void moveBank1 (int steps) {
-  runMotor (0, steps);
-  runMotor (1, steps);
-  delayMicroseconds (1);
+void moveBank1 (int stepsToRun) {
+
+  if (stepsToRun > 0){
+    steppers[0].setDirection(1);
+    steppers[1].setDirection(1);
+  } if(stepsToRun < 0){
+    steppers[0].setDirection(0);
+    steppers[1].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
+
+  for (int step = 0; step < stepsToRun; step++){
+    steppers[0].step();
+    steppers[1].step();
+    delayMicroseconds (stepPeriodsUs[0]);
+  }
 }
 
 // Bank2 Movement Function
-void moveBank2 (int steps) {
-  runMotor (2, steps);
-  runMotor (3, steps);
-  delayMicroseconds (1);
+void moveBank2 (int stepsToRun) {
+
+  if (stepsToRun > 0){
+    steppers[2].setDirection(1);
+    steppers[3].setDirection(1);
+  } else{
+    steppers[2].setDirection(0);
+    steppers[3].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
+
+  for (int step = 0; step < stepsToRun; step++){
+    steppers[2].step();
+    steppers[3].step();
+    Serial.println(step);
+    delayMicroseconds (stepPeriodsUs[3]);
+  }
 }
 
 // H1 Movement Function
@@ -244,31 +269,30 @@ void moveH4 (int steps) {
   delayMicroseconds (1);
 }
 
-void Backhomemin(){ //Homemin function
-  long positions[2] = {0,0}; //Create a blank 2 x 1 Matrix
+void Backhomemin(int stepsToRun) { // Homemin function
+  if (stepsToRun > 0){
+    steppers[0].setDirection(1);
+    steppers[1].setDirection(1);
+  } 
+  if (stepsToRun <0){
+    steppers[0].setDirection(0);
+    steppers[1].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
 
-  int max; //Initiate max variable
-  int min; //Initiate Min variable
+  int state;
+  for (int step = 0; step < stepsToRun; step++) {
+    steppers[0].step();
+    steppers[1].step();
+    delayMicroseconds(stepPeriodsUs[0]);
 
-    Serial.println("Starting homemin()");
-    int state; // Declare state variable
+    state = digitalRead(8);
 
-    do {
-        state = digitalRead(8); // Read the state of the limit switch pin
-      
-        if (state == LOW) {
-            // Limit switch is not pressed, move the motors continuously
-            positions[0] = positions[0] + 1; // Add one step to motor 0
-            positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveBank1(1);
-        }
-    } while (state == LOW);
-
-    // Limit switch is pressed, stop the motors
-    min = positions[0]; // Define the min position as the number of steps it took to get there
-    Serial.print(min); // Testing check
-    Serial.println("min done");
-    delay(2000);
+    if (state == HIGH) {
+      break;
+      return;
+    }
+  }
 }
 
 void Fronthomemin(){ //Homemin function
