@@ -87,31 +87,53 @@ const int WEAVING_LED_PIN = 11; // Example pin number for the weaving LED
 
 
 
-//SYSTEM POSITIONING VARIABLES/Array
-//Variable distance step count array
-//h1 shed height array
-int h1StepsArray =   {679.00, 281.00, 210.00};     
-//h2 shed height array
-int h2StepsArray =   {701.00, 289.00, 216.00}, {700.00, 289.00, 216.00}, {698.00, 288.00, 215.00}, {697.00, 287.00, 215.00}, {695.00, 286.00, 214.00}, {693.00, 285.00, 214.00}, {690.00, 285.00, 212.00}, {688.00, 283.00, 212.00};
+// SYSTEM POSITIONING VARIABLES/Array
+// Variable distance step count array
+// h1 shed height array
+float h1StepsArray[] = {679.00, 281.00, 210.00};
 
-//h3 shed height array
-int h3StepsVect = 0;     
-//h4 shed height array
-int h4StepsVect = 0;     
-//bank 2 warp tensioning distance array
-int bank2TensioningLocationArray = {81.00, 81.00, 78.00}, {83.00, 82.00, 80.00}, {84.00, 84.00, 82.00}, {86.00, 86.00, 83.00}, {88.00, 88.00, 86.00}, {90.00, 90.00, 88.00}, {93.00, 93.00, 91.00}, {96.00, 96.00, 94.00};  
+// h2 shed height array
+float h2StepsArray[][3] = {
+  {701.00, 289.00, 216.00},
+  {700.00, 289.00, 216.00},
+  {698.00, 288.00, 215.00},
+  {697.00, 287.00, 215.00},
+  {695.00, 286.00, 214.00},
+  {693.00, 285.00, 214.00},
+  {690.00, 285.00, 212.00},
+  {688.00, 283.00, 212.00}
+};
 
-//Fixed distance step counts
-int pickDistance = 0;   //steps for picking distance
-int beatupDistance = 0; //steps for beat up rotation
-int scoochDistance = 0; //steps for tensioner to travel 1.6 fiber diameters
+// h3 shed height array
+float h3StepsVect[] = {0}; // Not sure if this should be a float array
+
+// h4 shed height array
+float h4StepsVect[] = {0}; // Not sure if this should be a float array
+
+// bank 2 warp tensioning distance array
+float bank2TensioningLocationArray[][3] = {
+  {81.00, 81.00, 78.00},
+  {83.00, 82.00, 80.00},
+  {84.00, 84.00, 82.00},
+  {86.00, 86.00, 83.00},
+  {88.00, 88.00, 86.00},
+  {90.00, 90.00, 88.00},
+  {93.00, 93.00, 91.00},
+  {96.00, 96.00, 94.00}
+};
+
+// Fixed distance step counts
+int pickDistance = 0;     // Steps for picking distance
+int beatupDistance = 0;   // Steps for beat up rotation
+int scoochDistance = 0;   // Steps for tensioner to travel 1.6 fiber diameters
+
 
 //Number of increments to divide shedding motion into
 int numberOfIncrements = 50;
 
 
 void setup() {
-  Serial.begin();
+  Serial.begin(9600);
   SPI.begin();
  
  // Initialization of SPI/driver functions. Detailed descriptions here -> https://pololu.github.io/drv8434s-arduino/class_d_r_v8434_s.html#ac9909297f589d0a3660535e22ec2e11f
@@ -160,7 +182,7 @@ void loop() {
   //HOMING INSTRUCTIONS
   //Homing cannot start until a confirmation button is pressed
 
-Backhomemin();
+Backhomemin(10000);
 
 
   // // Main control loop for weaving
