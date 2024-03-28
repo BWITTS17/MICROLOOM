@@ -19,7 +19,7 @@
 // In this code, the 'back' of the machine is the side from which the harness is seen in front of the reed assembly. The warp fibers "get shorter" on this side.
 
 // Motor IDs Index Values
-// 0-1:   Warp Tensioner Bank 1 (front) Motors (1 = Front Left || 2 = Front Right)
+// 7-8:   Warp Tensioner Bank 1 (front) Motors (7 = Front Left || 8 = Front Right)
 // 2-3:   Warp Tensioner Bank 2 (back) Motors (3 = Back Right || 4 = Back Left)
 // 4:     Harness 1
 // 5:     Harness 2
@@ -189,26 +189,26 @@ Backhomemin();
 // Direction control is built into the runMotor function, so steps should be positive (+) and negative (-) to indicate direction
 
 // Bank1 Movement Function
-void moveBank1 (int stepsToRun) {
+void moveFrontBank (int stepsToRun) {
 
   if (stepsToRun > 0){
-    steppers[0].setDirection(1);
-    steppers[1].setDirection(1);
+    steppers[7].setDirection(1);
+    steppers[8].setDirection(1);
   } if(stepsToRun < 0){
-    steppers[0].setDirection(0);
-    steppers[1].setDirection(0);
+    steppers[7].setDirection(0);
+    steppers[8].setDirection(0);
     stepsToRun = - stepsToRun;
   }
 
   for (int step = 0; step < stepsToRun; step++){
-    steppers[0].step();
-    steppers[1].step();
+    steppers[7].step();
+    steppers[8].step();
     delayMicroseconds (stepPeriodsUs[0]);
   }
 }
 
 // Bank2 Movement Function
-void moveBank2 (int stepsToRun) {
+void moveBackBank (int stepsToRun) {
 
   if (stepsToRun > 0){
     steppers[2].setDirection(1);
@@ -229,31 +229,31 @@ void moveBank2 (int stepsToRun) {
 
 // H1 Movement Function
 void moveH1 (int steps) {
-  runMotor (4, steps);
+  runMotor (0, steps);
   delayMicroseconds (1);
 }
 
 // H2 Movement Function
 void moveH2 (int steps) {
-  runMotor (5, steps);
+  runMotor (1, steps);
   delayMicroseconds (1);
 }
 
 // Left Picking Motor Movement Function
 void moveLeftPick (int steps){
-  runMotor (6, steps);
+  runMotor (4, steps);
   delayMicroseconds (1);
 }
 
 // Right Picking Motor Movement Function
 void moveRightPick (int steps){
-  runMotor (7, steps);
+  runMotor (5, steps);
   delayMicroseconds (1);
 }
 
 // Beat Up Motor Movement Function
 void moveBeatUp (int steps){
-  runMotor (8, steps);
+  runMotor (6, steps);
   delayMicroseconds (1);
 }
 
@@ -269,21 +269,21 @@ void moveH4 (int steps) {
   delayMicroseconds (1);
 }
 
-void Backhomemin(int stepsToRun) { // Homemin function
+void Fronthomemin(int stepsToRun) { // Homemin function
   if (stepsToRun > 0){
-    steppers[0].setDirection(1);
-    steppers[1].setDirection(1);
+    steppers[7].setDirection(1);
+    steppers[8].setDirection(1);
   } 
   if (stepsToRun <0){
-    steppers[0].setDirection(0);
-    steppers[1].setDirection(0);
+    steppers[7].setDirection(0);
+    steppers[8].setDirection(0);
     stepsToRun = - stepsToRun;
   }
 
   int state;
   for (int step = 0; step < stepsToRun; step++) {
-    steppers[0].step();
-    steppers[1].step();
+    steppers[7].step();
+    steppers[8].step();
     delayMicroseconds(stepPeriodsUs[0]);
 
     state = digitalRead(8);
@@ -295,31 +295,30 @@ void Backhomemin(int stepsToRun) { // Homemin function
   }
 }
 
-void Fronthomemin(){ //Homemin function
-  long positions[2] = {0,0}; //Create a blank 2 x 1 Matrix
+void Backhomemin(int stepsToRun) { // Homemin function
+  if (stepsToRun > 0){
+    steppers[2].setDirection(1);
+    steppers[3].setDirection(1);
+  } 
+  if (stepsToRun <0){
+    steppers[2].setDirection(0);
+    steppers[3].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
 
-  int max; //Initiate max variable
-  int min; //Initiate Min variable
+  int state;
+  for (int step = 0; step < stepsToRun; step++) {
+    steppers[2].step();
+    steppers[3].step();
+    delayMicroseconds(stepPeriodsUs[2]);
 
-    Serial.println("Starting homemin()");
-    int state; // Declare state variable
+    state = digitalRead(8);
 
-    do {
-        state = digitalRead(9); // Read the state of the limit switch pin
-      
-        if (state == LOW) {
-            // Limit switch is not pressed, move the motors continuously
-            positions[0] = positions[0] + 1; // Add one step to motor 0
-            positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveBank2(1);
-        }
-    } while (state == LOW);
-
-    // Limit switch is pressed, stop the motors
-    min = positions[0]; // Define the min position as the number of steps it took to get there
-    Serial.print(min); // Testing check
-    Serial.println("min done");
-    delay(2000);
+    if (state == HIGH) {
+      break;
+      return;
+    }
+  }
 }
 
 void H1homemin(){ //Homemin function
