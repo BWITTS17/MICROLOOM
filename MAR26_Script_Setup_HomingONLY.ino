@@ -475,7 +475,7 @@ void weaving (numberOfPicks, totalNumberOfPicks, h1StepsArray, h2StepsArray, ban
   indexNumber = roundf(numberOfPicks/75);  //There are 8 values in arrays, 600 picks/75 = 8 --> number of picks is divided by 75 then rounded to nearest integer to get index value within array 
 
   for (int j = 0; j < 3; j++) {
-    h2SingleLine[1][3] = h2[indexNumber][j]);
+    h2SingleLine[1][j] = h2[indexNumber][j]);
   }
   
   warpStepsNum = bank2TensioningLocationArray(indexNumber);
