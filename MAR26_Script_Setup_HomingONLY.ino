@@ -451,16 +451,19 @@ void pickingHoming() {
 
 void weaving (numberOfPicks, totalNumberOfPicks, h1StepsArray, h2StepsArray, bank2TensioningLocationArray) {
 
-  indexNumber = roundf(numberOfPicks/75);  //Do this to shorten the size of harness vectors, 
+  indexNumber = roundf(numberOfPicks/75);  //There are 8 values in arrays, 600 picks/75 = 8 --> number of picks is divided by 75 then rounded to nearest integer to get index value within array 
 
   for (int j = 0; j < 3; j++) {
     h2SingleLine[1][3] = h2[indexNumber][j]);
   }
-  for (int j = 0; j < 3; j++) {
-    h2SingleLine[1][3] = h2[indexNumber][j]);
-  }
+  
+  warpStepsNum = bank2TensioningLocationArray(indexNumber);
 
-  sheddingThreeStepsBoring(h1StepsArray, h2StepsArray(indexNumber), warpStepsArray(indexNumber));
+  sheddingThreeStepsBoring(h1StepsArray, h2SingleLine, warpStepsNum);
+  Serial.println("picking occurs here doofus");
+  sheddingThreeStepsBoring(-h1StepsArray, -h2SingleLine, -warpStepsNum);
+  moveBeatUp(25);
+  moveBeatUp(-25);
 
   numberOfPicks++;
 
@@ -482,14 +485,15 @@ void firstPick () {
   Serial.println("picking happens here, if someone codes it **vomit**"); //picking code goes here
   sheddingThreeStepsBoring(-h1FirstPick, -h2FirstPick, -warpFirstPick, numberOfIncrements);
   Serial.println("first pick is done woohoo! balls.")
+  moveBeatUp(25);
 }
 
 void sheddingThreeStepsBoring(h1Steps, h2Steps, warpSteps)  {  
   if h1Steps > 0 {
     //First Increment 
-    moveH1(h1Steps(1)));
+    moveH1(h1Steps(1));
     moveH2(h2Steps(1));
-    moveBank2(warpSteps(1)));
+    moveBank2(warpSteps(1));
     //Second increment
     moveH1(h1Steps(2));
     moveH2(h2Steps(2));
