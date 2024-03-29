@@ -20,17 +20,28 @@
 
 // Motor IDs Index Values
 // 7-8:   Warp Tensioner Bank 1 (front) Motors (7 = Front Left || 8 = Front Right)
-// 2-3:   Warp Tensioner Bank 2 (back) Motors (3 = Back Right || 4 = Back Left)
-// 4:     Harness 1
-// 5:     Harness 2
-// 6:     Left Picking Motor
-// 7:     Right Picking Motor
-// 8:     Beat Up 
+// 2-3:   Warp Tensioner Bank 2 (back) Motors (2 = Back Right || 3 = Back Left)
+// 0:     Harness 1
+// 1:     Harness 2
+// 4:     Left Picking Motor
+// 5:     Right Picking Motor
+// 6:     Beat Up 
 // 9-10:  Remaining Harnesses (10 = Third Harness || 11 = Fourth Harness)
 
+//Limit Switch Pins:
+//Digital Pin 8 - Front Warp
+//Digital Pin 9 - Back Warp
+//Digital Pin 10 - H1
+//Digital Pin 11 - H2
+//Digital Pin 12 - Reed
+
+//Motor Directions
+//Front Bank: (-) = Towards Harnesses; (+) = Away from Harnesses
+//Back Bank: (-) = Towards Errors; (+) = Away from Harnesses
+
 const int numOfSteppers = 11; //number of stepper motors
-const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35}; //Chip select pins for per motor, see Motor IDs Overview
-const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500}; //Step periods per motor (ms)
+const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35,36}; //Chip select pins for per motor, see Motor IDs Overview
+const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 15000, 500, 500, 500, 500}; //Step periods per motor (ms)
 const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
 
 //Microstepping mode per motor
@@ -46,18 +57,6 @@ DRV8434S steppers[numOfSteppers]; //Array to hold DRV9434S objects per motor
 // Limit Switch Setup
 // LimSwitches labelled in reference to motor
 
-// Warp Tensioner LimSwitch Pins
-ezButton bank1MaxLimSwitch[2] = {8, 9};   //{Motor 0 MaxLimSwitch, Motor 1 MaxLimSwitch}
-ezButton bank1MinLimSwitch[2] = {55, 57};   //{Motor 0 MinLimSwitch, Motor 1 MinLimSwitch}
-ezButton bank2MaxLimSwitch[2] = {58, 60};   //{Motor 2 MaxLimSwitch, Motor 3 MaxLimSwitch}
-ezButton bank2MinLimSwitch[2] = {59, 61};   //{Motor 2 MinLimSwitch, Motor 3 MinLimSwitch}
-
-// Harness 1 & 2 LimSwitch Pins
-ezButton motor4LimSwitch[2] = {62, 63};     //{Motor 4 MaxLimSwitch, Motor 4 MinLimSwitch}
-ezButton motor5LimSwitch[2] = {64, 65};     //{Motor 5 MaxLimSwitch, Motor 4 MinLimSwitch}
-
-// Beat Up LimSwitch Pin
-ezButton motor8LimSwitch(66);
 
 // Harness 3 & 4 LimSwitch Pins
 // ezButton motor9LimSwitch[2] = {A, B};
@@ -153,21 +152,6 @@ void setup() {
     steppers[i].enableDriver();                             // Enables driver
   }
 
-
-// Set Warp Tensioner LimSwitch Debounce Time
-for (int i = 0; i < 2; i++) {
-  bank1MaxLimSwitch[i].setDebounceTime(50);
-}
-
-
-
-// Set Beat Up LimSwitch Debounce Time
-
-
-// Harness 3 & 4 LimSwitch Pins
-//  motor10LimSwitch.setDebounceTime[2] = {50, 50};
-//  motor11LimSwitch.setDebounceTime[2] = {50, 50};
-
   Serial.begin(9600);
   Serial.println("Setup complete, motors ready.");
 
@@ -182,7 +166,7 @@ void loop() {
   //HOMING INSTRUCTIONS
   //Homing cannot start until a confirmation button is pressed
 
-Backhomemin(10000);
+moveRightPick(1000);
 
 
   // // Main control loop for weaving
