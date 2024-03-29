@@ -319,12 +319,11 @@ void Fronthomemin(int stepsToRun) { // Homemin function
 }
 
 
-void Backhomemin(int stepsToRun) { // Homemin function
+void Backhomemin(int stepsToRun) // Homemin function
   if (stepsToRun > 0){
     steppers[2].setDirection(1);
-    steppers[3].setDirection(1);
-  } 
-  if (stepsToRun <0){
+    steppers[3].setDirection(1);  
+  }if (stepsToRun <0){
     steppers[2].setDirection(0);
     steppers[3].setDirection(0);
     stepsToRun = - stepsToRun;
@@ -334,9 +333,10 @@ void Backhomemin(int stepsToRun) { // Homemin function
   for (int step = 0; step < stepsToRun; step++) {
     steppers[2].step();
     steppers[3].step();
-    delayMicroseconds(stepPeriodsUs[3]);
+    delayMicroseconds(stepPeriodsUs[2]);
 
-    state = digitalRead(10);
+   limitSwitchBack.loop();
+   int state = limitSwitchBack.getState();
 
     if (state == HIGH) {
       break;
