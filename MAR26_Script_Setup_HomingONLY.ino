@@ -455,8 +455,14 @@ void weaving () {
   harnessesOut = false;
   moveBeatUp(25);
   moveBeatUp(-25);
+  scoochFunction();
 
   currentPick++;
+
+  Serial.print(currentPick);
+  Serial.print(" out of ");
+  Serial.print(totalPicks);
+  Serial.print(" completed.");
 
   if (currentPick < totalPicks) {
     weaving();
@@ -466,6 +472,7 @@ void weaving () {
     Serial.print(" out of ");
     Serial.print(totalPicks);
     Serial.print(" completed.");
+    returnHome();
   }
 }
 
@@ -504,6 +511,12 @@ void beatUpFunction(){
   runMotor(7, beatupDistance);
   delay(50);
   runMotor(7, -beatupDistance);
+}
+
+void scoochFunction(){
+for (steps = 0, steps < scoochDistance, steps++){
+      moveFrontBank(-1);
+      moveBackBank(1);
 }
 
 void sheddingThreeSteps()  { 
