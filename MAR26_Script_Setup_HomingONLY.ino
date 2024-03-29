@@ -35,11 +35,9 @@
 //Digital Pin 11 - H2
 //Digital Pin 12 - Reed
 
-//Motor Directions (1 is (+), -1 is (-))
+//Motor Directions
 //Front Bank: (-) = Towards Harnesses; (+) = Away from Harnesses
 //Back Bank: (-) = Towards Errors; (+) = Away from Harnesses
-//H1: (+) = Down, (-) is up
-//H2: (+) = down, (-) is up
 
 const int numOfSteppers = 11; //number of stepper motors
 const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35,36}; //Chip select pins for per motor, see Motor IDs Overview
@@ -55,19 +53,14 @@ const DRV8434SStepMode stepModes[numOfSteppers] = {
 
 DRV8434S steppers[numOfSteppers]; //Array to hold DRV9434S objects per motor
 
+
+// Limit Switch Setup
+// LimSwitches labelled in reference to motor
 ezButton limitSwitchFront(8);
 ezButton limitSwitchBack(9);
 ezButton limitSwitchH1(10);
 ezButton limitSwitchH2(11);
 ezButton limitSwitchReed(12);
-
-// Limit Switch Setup
-// LimSwitches labelled in reference to motor
-
-
-// Harness 3 & 4 LimSwitch Pins
-// ezButton motor9LimSwitch[2] = {A, B};
-// ezButton motor10LimSwitch[2] = {C, D};
 
 // Control variables per motor type
 bool bank1Active = false;  //front bank (motors 0 & 1)
@@ -78,6 +71,8 @@ bool pickActive = false;   //picking (motors 6 & 7)
 bool beatupActive = false; //beat up (motor 8)
 bool h3Active = false;     //h3 (motor 9)
 bool h4Active = false;     //h4 (motor 10)
+bool harnessesOut = false; //boolean that dictates the direction in which harnesses move; harnessesOut = true means harnesses are "extended", false means they are on center
+bool pickSide = false;     //Dictates which pick motor is activated during picking, true = left, false = right
 
 //Machine status variables
 bool weavingActive = false;
@@ -96,36 +91,36 @@ const int WEAVING_LED_PIN = 11; // Example pin number for the weaving LED
 // SYSTEM POSITIONING VARIABLES/Array
 // Variable distance step count array
 // h1 shed height array
-float h1StepsArray[] = {679.00, 281.00, 210.00};
+int h1StepsArray[] = {679, 281, 210};
 
 // h2 shed height array
-float h2StepsArray[][3] = {
-  {701.00, 289.00, 216.00},
-  {700.00, 289.00, 216.00},
-  {698.00, 288.00, 215.00},
-  {697.00, 287.00, 215.00},
-  {695.00, 286.00, 214.00},
-  {693.00, 285.00, 214.00},
-  {690.00, 285.00, 212.00},
-  {688.00, 283.00, 212.00}
+int h2StepsArray[][3] = {
+  {701, 289, 216},
+  {700, 289, 216},
+  {698, 288, 215},
+  {697, 287, 215},
+  {695, 286, 214},
+  {693, 285, 214},
+  {690, 285, 212},
+  {688, 283, 212}
 };
 
 // h3 shed height array
-float h3StepsVect[] = {0}; // Not sure if this should be a float array
+int h3StepsVect[] = {0}; // Not sure if this should be a float array
 
 // h4 shed height array
-float h4StepsVect[] = {0}; // Not sure if this should be a float array
+int h4StepsVect[] = {0}; // Not sure if this should be a float array
 
 // bank 2 warp tensioning distance array
-float bank2TensioningLocationArray[][3] = {
-  {81.00, 81.00, 78.00},
-  {83.00, 82.00, 80.00},
-  {84.00, 84.00, 82.00},
-  {86.00, 86.00, 83.00},
-  {88.00, 88.00, 86.00},
-  {90.00, 90.00, 88.00},
-  {93.00, 93.00, 91.00},
-  {96.00, 96.00, 94.00}
+int bank2TensioningLocationArray[][3] = {
+  {81, 81, 78},
+  {83, 82, 80},
+  {84, 84, 82},
+  {86, 86, 83},
+  {88, 88, 86},
+  {90, 90, 88},
+  {93, 93, 91},
+  {96, 96, 94}
 };
 
 // Fixed distance step counts
@@ -133,9 +128,6 @@ int pickDistance = 0;     // Steps for picking distance
 int beatupDistance = 0;   // Steps for beat up rotation
 int scoochDistance = 0;   // Steps for tensioner to travel 1.6 fiber diameters
 
-
-//Number of increments to divide shedding motion into
-int numberOfIncrements = 50;
 
 
 void setup() {
@@ -161,14 +153,6 @@ void setup() {
 
   Serial.begin(9600);
   Serial.println("Setup complete, motors ready.");
-
-
-
-  limitSwitchFront.setDebounceTime(50);
-  limitSwitchBack.setDebounceTime(50);
-  limitSwitchH1.setDebounceTime(50);
-  limitSwitchH2.setDebounceTime(50);
-  limitSwitchReed.setDebounceTime(50);
 
   //pinMode(errorLED, OUTPUT); // Error LED
   //pinMode(weavingLED, OUTPUT); // Weaving LED
@@ -252,7 +236,7 @@ void moveBackBank (int stepsToRun) {
 
 // H1 Movement Function
 void moveH1 (int steps) {
-  runMotor (0, steps);
+  runMotor(0, steps);
   delayMicroseconds (1);
 }
 
@@ -319,7 +303,7 @@ void Fronthomemin(int stepsToRun) { // Homemin function
 }
 
 
-void Backhomemin(int stepsToRun) // Homemin function
+void Backhomemin(int stepsToRun){ // Homemin function
   if (stepsToRun > 0){
     steppers[2].setDirection(1);
     steppers[3].setDirection(1);  
@@ -344,7 +328,6 @@ void Backhomemin(int stepsToRun) // Homemin function
     }
   }
 }
-
 void H1homemin(int stepsToRun) { // Homemin function
   if (stepsToRun > 0){
     steppers[0].setDirection(1);
@@ -416,6 +399,9 @@ void Reedhomemin(int stepsToRun) { // Homemin function
 
 
 
+
+
+
 // Definition of general min/max homing functions
 
 
@@ -460,72 +446,99 @@ void pickingHoming() {
 
 
 
-void weaving (numberOfPicks, totalNumberOfPicks, h1StepsArray, h2StepsArray, bank2TensioningLocationArray) {
+void weaving () {
+  sheddingThreeSteps();
+  harnessesOut = true;
 
-  indexNumber = roundf(numberOfPicks/75);  //There are 8 values in arrays, 600 picks/75 = 8 --> number of picks is divided by 75 then rounded to nearest integer to get index value within array 
-
-  for (int j = 0; j < 3; j++) {
-    h2SingleLine[1][j] = h2[indexNumber][j]);
-  }
-  
-  warpStepsNum = bank2TensioningLocationArray(indexNumber);
-
-  sheddingThreeStepsBoring(h1StepsArray, h2SingleLine, warpStepsNum);
-  Serial.println("picking occurs here doofus");
-  sheddingThreeStepsBoring(-h1StepsArray, -h2SingleLine, -warpStepsNum);
+  pickingFunction();
+  sheddingThreeSteps();
+  harnessesOut = false;
   moveBeatUp(25);
   moveBeatUp(-25);
 
-  numberOfPicks++;
+  currentPick++;
 
-  if (numberOfPicks < totalNumberOfPicks) {
-    weaving(numberOfPicks, totalNumberOfPicks, h1StepsArray, h2StepsArray, bank2TensioningLocationArray);
+  if (currentPick < totalPicks) {
+    weaving();
   } else {
-    Serial.println((STRING)"Weaving is finished, "+numberOfPicks+" out of "+totalNumberOfPicks+" completed.")
+    Serial.print("Weaving is finished, ");
+    Serial.print(currentPick);
+    Serial.print(" out of ");
+    Serial.print(totalPicks);
+    Serial.print(" completed.");
   }
 }
 
 void firstPick () {
   //First pick distances IN STEPS
-  h1FirstPick = {475.00, 197.00, 147.00};   //steps from neutral axis to H1 first pick height
-  h2FirstPick = {484.00, 200.00, 150.00};     //steps from neutral axis to H2 first pick height
+  int h1FirstPick[] = {475, 197, 147};   //steps from neutral axis to H1 first pick height
+  int h2FirstPick[] = {484, 200, 150};     //steps from neutral axis to H2 first pick height
 
-  warpFirstPick = {32.00, 32.00, 31.00};      //steps from warp tensioner start position to first pick position
+  int warpFirstPick[] = {32, 32, 31};      //steps from warp tensioner start position to first pick position
 
-  sheddingThreeStepsBoring(h1FirstPick, h2FirstPick, warpFirstPick, numberOfIncrements);
-  Serial.println("picking happens here, if someone codes it **vomit**"); //picking code goes here
-  sheddingThreeStepsBoring(-h1FirstPick, -h2FirstPick, -warpFirstPick, numberOfIncrements);
-  Serial.println("first pick is done woohoo! balls.")
-  moveBeatUp(25);
+  sheddingThreeSteps();
+  harnessesOut = true;
+
+  pickingFunction();
+  pickSide = true;
+
+  sheddingThreeSteps();
+  harnessesOut = false;
+
+  beatUpFunction();
 }
 
-void sheddingThreeStepsBoring(h1Steps, h2Steps, warpSteps)  {  
-  if h1Steps > 0 {
+void pickingFunction(){
+  if (pickSide == true){
+    runMotor(5, pickDistance);
+    delay(50);
+    runMotor(5, -pickDistance);
+  } else if (pickSide == false){
+    runMotor(6, pickDistance);
+    delay(50);
+    runMotor(6, -pickDistance);
+  }
+}
+
+void beatUpFunction(){
+  runMotor(7, beatupDistance);
+  delay(50);
+  runMotor(7, -beatupDistance);
+}
+
+void sheddingThreeSteps()  { 
+  int indexNumber = roundf(currentPick/75);  //There are 8 values in arrays, 600 picks/75 = 8 --> number of picks is divided by 75 then rounded to nearest integer to get index value within array 
+ 
+  if (harnessesOut == false) {
     //First Increment 
-    moveH1(h1Steps(1));
-    moveH2(h2Steps(1));
-    moveBank2(warpSteps(1));
+    moveH1(h1StepsArray[1]);
+    moveH2(h2StepsArray[indexNumber][1]);
+    moveBackBank(bank2TensioningLocationArray[indexNumber][1]);
     //Second increment
-    moveH1(h1Steps(2));
-    moveH2(h2Steps(2));
-    moveBank2(warpSteps(2));
+    moveH1(h1StepsArray[2]);
+    moveH2(h2StepsArray[indexNumber][2]);
+    moveBackBank(bank2TensioningLocationArray[indexNumber][2]);
     //Third increment
-    moveH1(h1Steps(3));
-    moveH2(h2Steps(3));
-    moveBank2(warpSteps(3));
-=  } else if (h1Steps < 0) {
+    moveH1(h1StepsArray[3]);
+    moveH2(h2StepsArray[3]);
+    moveBackBank(bank2TensioningLocationArray[indexNumber][3]);
+
+    harnessesOut = true;
+  } else if (harnessesOut == true) {
     //Third increment
-    moveH1(-h1Steps(3));
-    moveH2(-h2Steps(3));
-    moveBank2(-warpSteps(3));
+    moveH1(-h1StepsArray[3]);
+    moveH2(-h2StepsArray[indexNumber][3]);
+    moveBackBank(-bank2TensioningLocationArray[indexNumber][3]);
     //Second increment
-    moveH1(-h1Steps(2));
-    moveH2(-h2Steps(2));
-    moveBank2(-warpSteps(2));
+    moveH1(-h1StepsArray[2]);
+    moveH2(-h2StepsArray[indexNumber][2]);
+    moveBackBank(-bank2TensioningLocationArray[indexNumber][2]);
     //First Increment 
-    moveH1(-h1Steps(1));
-    moveH2(-h2Steps(1));
-    moveBank2(-warpSteps(1));
+    moveH1(-h1StepsArray[1]);
+    moveH2(-h2StepsArray[indexNumber][1]);
+    moveBackBank(-bank2TensioningLocationArray[indexNumber][1]);
+
+    harnessesOut = false;
   } else {
     error = true;
   }
