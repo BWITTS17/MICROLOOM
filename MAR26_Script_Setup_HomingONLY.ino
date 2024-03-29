@@ -35,13 +35,15 @@
 //Digital Pin 11 - H2
 //Digital Pin 12 - Reed
 
-//Motor Directions
+//Motor Directions (1 is (+), -1 is (-))
 //Front Bank: (-) = Towards Harnesses; (+) = Away from Harnesses
 //Back Bank: (-) = Towards Errors; (+) = Away from Harnesses
+//H1: (+) = Down, (-) is up
+//H2: (+) = down, (-) is up
 
 const int numOfSteppers = 11; //number of stepper motors
 const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35,36}; //Chip select pins for per motor, see Motor IDs Overview
-const uint16_t stepPeriodsUs[numOfSteppers] = {500, 500, 500, 500, 500, 500, 15000, 500, 500, 500, 500}; //Step periods per motor (ms)
+const uint16_t stepPeriodsUs[numOfSteppers] = {1000, 1000, 1000, 1000, 500, 500, 15000, 1000, 1000}; //Step periods per motor (ms)
 const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
 
 //Microstepping mode per motor
@@ -53,6 +55,11 @@ const DRV8434SStepMode stepModes[numOfSteppers] = {
 
 DRV8434S steppers[numOfSteppers]; //Array to hold DRV9434S objects per motor
 
+ezButton limitSwitchFront(8);
+ezButton limitSwitchBack(9);
+ezButton limitSwitchH1(10);
+ezButton limitSwitchH2(11);
+ezButton limitSwitchReed(12);
 
 // Limit Switch Setup
 // LimSwitches labelled in reference to motor
@@ -155,6 +162,14 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Setup complete, motors ready.");
 
+
+
+  limitSwitchFront.setDebounceTime(50);
+  limitSwitchBack.setDebounceTime(50);
+  limitSwitchH1.setDebounceTime(50);
+  limitSwitchH2.setDebounceTime(50);
+  limitSwitchReed.setDebounceTime(50);
+
   //pinMode(errorLED, OUTPUT); // Error LED
   //pinMode(weavingLED, OUTPUT); // Weaving LED
 }
@@ -166,7 +181,10 @@ void loop() {
   //HOMING INSTRUCTIONS
   //Homing cannot start until a confirmation button is pressed
 
-moveRightPick(1000);
+
+moveH2(-3955);
+
+
 
 
   // // Main control loop for weaving
@@ -228,7 +246,6 @@ void moveBackBank (int stepsToRun) {
   for (int step = 0; step < stepsToRun; step++){
     steppers[2].step();
     steppers[3].step();
-    Serial.println(step);
     delayMicroseconds (stepPeriodsUs[3]);
   }
 }
@@ -278,9 +295,8 @@ void moveH4 (int steps) {
 void Fronthomemin(int stepsToRun) { // Homemin function
   if (stepsToRun > 0){
     steppers[7].setDirection(1);
-    steppers[8].setDirection(1);
-  } 
-  if (stepsToRun <0){
+    steppers[8].setDirection(1);  
+  }if (stepsToRun <0){
     steppers[7].setDirection(0);
     steppers[8].setDirection(0);
     stepsToRun = - stepsToRun;
@@ -292,7 +308,8 @@ void Fronthomemin(int stepsToRun) { // Homemin function
     steppers[8].step();
     delayMicroseconds(stepPeriodsUs[0]);
 
-    state = digitalRead(8);
+   limitSwitchFront.loop();
+   int state = limitSwitchFront.getState();
 
     if (state == HIGH) {
       break;
@@ -300,6 +317,7 @@ void Fronthomemin(int stepsToRun) { // Homemin function
     }
   }
 }
+
 
 void Backhomemin(int stepsToRun) { // Homemin function
   if (stepsToRun > 0){
@@ -316,9 +334,9 @@ void Backhomemin(int stepsToRun) { // Homemin function
   for (int step = 0; step < stepsToRun; step++) {
     steppers[2].step();
     steppers[3].step();
-    delayMicroseconds(stepPeriodsUs[2]);
+    delayMicroseconds(stepPeriodsUs[3]);
 
-    state = digitalRead(8);
+    state = digitalRead(10);
 
     if (state == HIGH) {
       break;
@@ -327,85 +345,73 @@ void Backhomemin(int stepsToRun) { // Homemin function
   }
 }
 
-void H1homemin(){ //Homemin function
-  long positions[2] = {0,0}; //Create a blank 2 x 1 Matrix
+void H1homemin(int stepsToRun) { // Homemin function
+  if (stepsToRun > 0){
+    steppers[0].setDirection(1);
+  }if (stepsToRun <0){
+    steppers[0].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
 
-  int max; //Initiate max variable
-  int min; //Initiate Min variable
+  int state;
+  for (int step = 0; step < stepsToRun; step++) {
+    steppers[0].step();
+    delayMicroseconds(stepPeriodsUs[0]);
 
-    Serial.println("Starting homemin()");
-    int state; // Declare state variable
+    limitSwitchH1.loop();
+    int state = limitSwitchH1.getState();
 
-    do {
-        state = digitalRead(10); // Read the state of the limit switch pin
-      
-        if (state == LOW) {
-            // Limit switch is not pressed, move the motors continuously
-            positions[0] = positions[0] + 1; // Add one step to motor 0
-            positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveH1(1);
-        }
-    } while (state == LOW);
-
-    // Limit switch is pressed, stop the motors
-    min = positions[0]; // Define the min position as the number of steps it took to get there
-    Serial.print(min); // Testing check
-    Serial.println("min done");
-    delay(2000);
+    if (state == HIGH) {
+      break;
+      return;
+    }
+  }
 }
 
-void H2homemin(){ //Homemin function
-  long positions[2] = {0,0}; //Create a blank 2 x 1 Matrix
+void H2homemin(int stepsToRun){ // Homemin function
+  if (stepsToRun > 0){
+    steppers[1].setDirection(1);
+  }if (stepsToRun <0){
+    steppers[1].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
 
-  int max; //Initiate max variable
-  int min; //Initiate Min variable
+  int state;
+  for (int step = 0; step < stepsToRun; step++) {
+    steppers[1].step();
+    delayMicroseconds(stepPeriodsUs[1]);
 
-    Serial.println("Starting homemin()");
-    int state; // Declare state variable
+    limitSwitchH2.loop();
+    int state = limitSwitchH2.getState();
 
-    do {
-        state = digitalRead(11); // Read the state of the limit switch pin
-      
-        if (state == LOW) {
-            // Limit switch is not pressed, move the motors continuously
-            positions[0] = positions[0] + 1; // Add one step to motor 0
-            positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveH2(1);
-        }
-    } while (state == LOW);
-
-    // Limit switch is pressed, stop the motors
-    min = positions[0]; // Define the min position as the number of steps it took to get there
-    Serial.print(min); // Testing check
-    Serial.println("min done");
-    delay(2000);
+    if (state == HIGH) {
+      break;
+      return;
+    }
+  }
 }
 
-void Reedhomemin(){ //Homemin function
-  long positions[2] = {0,0}; //Create a blank 2 x 1 Matrix
+void Reedhomemin(int stepsToRun) { // Homemin function
+  if (stepsToRun > 0){
+    steppers[6].setDirection(1);
+  }if (stepsToRun <0){
+    steppers[6].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
 
-  int max; //Initiate max variable
-  int min; //Initiate Min variable
+  int state;
+  for (int step = 0; step < stepsToRun; step++) {
+    steppers[6].step();
+    delayMicroseconds(stepPeriodsUs[6]);
 
-    Serial.println("Starting homemin()");
-    int state; // Declare state variable
+    limitSwitchReed.loop();
+    int state = limitSwitchReed.getState();
 
-    do {
-        state = digitalRead(12); // Read the state of the limit switch pin
-      
-        if (state == LOW) {
-            // Limit switch is not pressed, move the motors continuously
-            positions[0] = positions[0] + 1; // Add one step to motor 0
-            positions[1] = positions[1] + 1; // Add one step to motor 1
-            moveBeatUp(1);
-        }
-    } while (state == LOW);
-
-    // Limit switch is pressed, stop the motors
-    min = positions[0]; // Define the min position as the number of steps it took to get there
-    Serial.print(min); // Testing check
-    Serial.println("min done");
-    delay(2000);
+    if (state == HIGH) {
+      break;
+      return;
+    }
+  }
 }
 
 
