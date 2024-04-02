@@ -392,31 +392,34 @@ void shedding()  {
   if (currentPick == 1) {
     if (shedOpen == false) {
     //First Increment 
-    moveH1(dirMultiplier * -h1FirstPick[1]); //h1 goes up on odd picks, down on even picks
-    moveH2(dirMultiplier * h2FirstPick[1]); //h2 goes down on odd picks, up on even picks
-    moveBackBank(-warpFirstPick[1]); // (-) = towards harnesses
+    moveH1(dirMultiplier * -h1FirstPick[0]); //h1 goes up on odd picks, down on even picks
+    moveH2(dirMultiplier * h2FirstPick[0]); //h2 goes down on odd picks, up on even picks
+    moveBackBank(-warpFirstPick[0]); // (-) = towards harnesses
+    Serial.println("first done");
     //Second increment
+    moveH1(dirMultiplier * -h1FirstPick[1]);
+    moveH2(dirMultiplier * h2FirstPick[1]);
+    moveBackBank(-warpFirstPick[2]);
+    Serial.println("second done");
+    //Third increment
     moveH1(dirMultiplier * -h1FirstPick[2]);
     moveH2(dirMultiplier * h2FirstPick[2]);
     moveBackBank(-warpFirstPick[2]);
-    //Third increment
-    moveH1(dirMultiplier * -h1FirstPick[3]);
-    moveH2(dirMultiplier * h2FirstPick[3]);
-    moveBackBank(-warpFirstPick[3]);
+    Serial.println("third done");
 
     shedOpen = true;
-  } else if ( == true) {
+  } else if (shedOpen == true) {
     //Third increment
-    moveH1(dirMultiplier * h1FirstPick[3]);
-    moveH2(dirMultiplier * -h2FirstPick[3]);
+    moveH1(dirMultiplier * h1FirstPick[0]);
+    moveH2(dirMultiplier * -h2FirstPick[0]);
     moveBackBank(warpFirstPick[3]); //(+) = away from harnesses
     //Second increment
-    moveH1(dirMultiplier * h1FirstPick[2]);
-    moveH2(dirMultiplier * -h2FirstPick[2]);
-    moveBackBank(warpFirstPick[2]);
-    //First Increment 
     moveH1(dirMultiplier * h1FirstPick[1]);
     moveH2(dirMultiplier * -h2FirstPick[1]);
+    moveBackBank(warpFirstPick[1]);
+    //First Increment 
+    moveH1(dirMultiplier * h1FirstPick[2]);
+    moveH2(dirMultiplier * -h2FirstPick[2]);
     moveBackBank(warpFirstPick[1]);
 
     shedOpen = false;
@@ -426,34 +429,34 @@ void shedding()  {
   } else if (currentPick > 1) {
     if (shedOpen == false) {
     //First Increment 
-    moveH1(dirMultiplier * -h1StepsArray[1]); //h1 goes up on odd picks, down on even picks
-    moveH2(dirMultiplier * h2StepsArray[indexNumber][1]); //h2 goes down on odd picks, up on even picks
-    moveBackBank(-bank2TensioningLocationArray[indexNumber][1]); // (-) = towards harnesses
+    moveH1(dirMultiplier * -h1StepsArray[0]); //h1 goes up on odd picks, down on even picks
+    moveH2(dirMultiplier * h2StepsArray[indexNumber][0]); //h2 goes down on odd picks, up on even picks
+    moveBackBank(-bank2TensioningLocationArray[indexNumber][0]); // (-) = towards harnesses
     //Second increment
+    moveH1(dirMultiplier * -h1StepsArray[1]);
+    moveH2(dirMultiplier * h2StepsArray[indexNumber][1]);
+    moveBackBank(-bank2TensioningLocationArray[indexNumber][1]);
+    //Third increment
     moveH1(dirMultiplier * -h1StepsArray[2]);
     moveH2(dirMultiplier * h2StepsArray[indexNumber][2]);
     moveBackBank(-bank2TensioningLocationArray[indexNumber][2]);
-    //Third increment
-    moveH1(dirMultiplier * -h1StepsArray[3]);
-    moveH2(dirMultiplier * h2StepsArray[indexNumber][3]);
-    moveBackBank(-bank2TensioningLocationArray[indexNumber][3]);
 
-    harnessesOut = true;
-  } else if (harnessesOut == true) {
+    shedOpen = true;
+  } else if (shedOpen == true) {
     //Third increment
-    moveH1(dirMultiplier * h1StepsArray[3]);
-    moveH2(dirMultiplier * -h2StepsArray[indexNumber][3]);
-    moveBackBank(bank2TensioningLocationArray[indexNumber][3]); //(+) = away from harnesses
-    //Second increment
     moveH1(dirMultiplier * h1StepsArray[2]);
     moveH2(dirMultiplier * -h2StepsArray[indexNumber][2]);
-    moveBackBank(bank2TensioningLocationArray[indexNumber][2]);
-    //First Increment 
+    moveBackBank(bank2TensioningLocationArray[indexNumber][2]); //(+) = away from harnesses
+    //Second increment
     moveH1(dirMultiplier * h1StepsArray[1]);
     moveH2(dirMultiplier * -h2StepsArray[indexNumber][1]);
     moveBackBank(bank2TensioningLocationArray[indexNumber][1]);
+    //First Increment 
+    moveH1(dirMultiplier * h1StepsArray[0]);
+    moveH2(dirMultiplier * -h2StepsArray[indexNumber][0]);
+    moveBackBank(bank2TensioningLocationArray[indexNumber][0]);
 
-    harnessesOut = false;
+    shedOpen = false;
   }
   }
 
@@ -502,14 +505,13 @@ void scooch(){
 void weaving() {
   //open shed
   shedding();
-  harnessesOut = true;
 
   //pick
   picking();
   
   //close shed
   shedding();
-  harnessesOut = false;
+  shedOpen = false;
   
   //beat up
   beatUp();
