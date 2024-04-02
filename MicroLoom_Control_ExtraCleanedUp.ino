@@ -106,8 +106,8 @@ int h2StepsArray[][3] = {
 };
 
 // bank 2 warp tensioning distance array
-int warpFirstPick[] = {32, 32, 31};      //steps from warp tensioner start position to first pick position
-int bank2TensioningLocationArray[][3] = {
+int strainRegulationFirstPick[] = {32, 32, 31};      //steps from warp tensioner start position to first pick position
+int strainRegulationSteps[][3] = {
   {81, 81, 78},
   {83, 82, 80},
   {84, 84, 82},
@@ -174,6 +174,7 @@ void loop() {
   // Main control loop for weaving
   if (weavingActive && !error) { //waitForString() sets weavingActive = true, when pick limit reached weaving() sets weavingActive() false
       weaving();
+      delay(1500);
     }
  
 }
@@ -205,7 +206,7 @@ void runMotor(int stepperID, int stepsToRun) {
     delayMicroseconds(stepPeriodsUs[stepperID]);
   }
 
-  delayMicroseconds(1);
+  delayMicroseconds(1); //is this doing anything?
 }
 
 //Front Bank Movement Function
@@ -357,6 +358,7 @@ void homeHarnesses() {
   }
 
   moveH1(-harnessHome);
+  delay(1000);
 
   //Bring H2 to switch, then lift to neutral plane
   for (int step = 0; step < 10000; step++) {
@@ -376,15 +378,19 @@ void homeHarnesses() {
 }
 
 void frontOutTheWay() {
-  homeFrontBank();
-  moveFrontBank(9000);
+  homeFrontBank(); //drive bank to limit switch
+  moveFrontBank(9000); //drive back towards the motor to get it out of the way
 }
 
 void homeMachine() {
       frontOutTheWay();
+      delay(1000);
       homeReed();
+      delay(1000);
       homeFrontBank();
+      delay(1000);
       homeBackBank();
+      delay(1000);
       homeHarnesses();
       homed = true;
 }
@@ -419,17 +425,17 @@ void shedding()  {
     //First Increment 
     moveH1(dirMultiplier * -h1FirstPick[0]); //h1 goes up on odd picks, down on even picks
     moveH2(dirMultiplier * h2FirstPick[0]); //h2 goes down on odd picks, up on even picks
-    moveBackBank(-warpFirstPick[0]); // (-) = towards harnesses
+    moveBackBank(-strainRegulationFirstPick[0]); // (-) = towards harnesses
     Serial.println("first done");
     //Second increment
     moveH1(dirMultiplier * -h1FirstPick[1]);
     moveH2(dirMultiplier * h2FirstPick[1]);
-    moveBackBank(-warpFirstPick[2]);
+    moveBackBank(-strainRegulationFirstPick[2]);
     Serial.println("second done");
     //Third increment
     moveH1(dirMultiplier * -h1FirstPick[2]);
     moveH2(dirMultiplier * h2FirstPick[2]);
-    moveBackBank(-warpFirstPick[2]);
+    moveBackBank(-strainRegulationFirstPick[2]);
     Serial.println("third done");
 
     shedOpen = true;
@@ -437,15 +443,15 @@ void shedding()  {
     //Third increment
     moveH1(dirMultiplier * h1FirstPick[0]);
     moveH2(dirMultiplier * -h2FirstPick[0]);
-    moveBackBank(warpFirstPick[3]); //(+) = away from harnesses
+    moveBackBank(strainRegulationFirstPick[3]); //(+) = away from harnesses
     //Second increment
     moveH1(dirMultiplier * h1FirstPick[1]);
     moveH2(dirMultiplier * -h2FirstPick[1]);
-    moveBackBank(warpFirstPick[1]);
+    moveBackBank(strainRegulationFirstPick[1]);
     //First Increment 
     moveH1(dirMultiplier * h1FirstPick[2]);
     moveH2(dirMultiplier * -h2FirstPick[2]);
-    moveBackBank(warpFirstPick[1]);
+    moveBackBank(strainRegulationFirstPick[1]);
 
     shedOpen = false;
   }
@@ -456,30 +462,30 @@ void shedding()  {
     //First Increment 
     moveH1(dirMultiplier * -h1StepsArray[0]); //h1 goes up on odd picks, down on even picks
     moveH2(dirMultiplier * h2StepsArray[indexNumber][0]); //h2 goes down on odd picks, up on even picks
-    moveBackBank(-bank2TensioningLocationArray[indexNumber][0]); // (-) = towards harnesses
+    moveBackBank(-strainRegulationSteps[indexNumber][0]); // (-) = towards harnesses
     //Second increment
     moveH1(dirMultiplier * -h1StepsArray[1]);
     moveH2(dirMultiplier * h2StepsArray[indexNumber][1]);
-    moveBackBank(-bank2TensioningLocationArray[indexNumber][1]);
+    moveBackBank(-strainRegulationSteps[indexNumber][1]);
     //Third increment
     moveH1(dirMultiplier * -h1StepsArray[2]);
     moveH2(dirMultiplier * h2StepsArray[indexNumber][2]);
-    moveBackBank(-bank2TensioningLocationArray[indexNumber][2]);
+    moveBackBank(-strainRegulationSteps[indexNumber][2]);
 
     shedOpen = true;
   } else if (shedOpen == true) {
     //Third increment
     moveH1(dirMultiplier * h1StepsArray[2]);
     moveH2(dirMultiplier * -h2StepsArray[indexNumber][2]);
-    moveBackBank(bank2TensioningLocationArray[indexNumber][2]); //(+) = away from harnesses
+    moveBackBank(strainRegulationSteps[indexNumber][2]); //(+) = away from harnesses
     //Second increment
     moveH1(dirMultiplier * h1StepsArray[1]);
     moveH2(dirMultiplier * -h2StepsArray[indexNumber][1]);
-    moveBackBank(bank2TensioningLocationArray[indexNumber][1]);
+    moveBackBank(strainRegulationSteps[indexNumber][1]);
     //First Increment 
     moveH1(dirMultiplier * h1StepsArray[0]);
     moveH2(dirMultiplier * -h2StepsArray[indexNumber][0]);
-    moveBackBank(bank2TensioningLocationArray[indexNumber][0]);
+    moveBackBank(strainRegulationSteps[indexNumber][0]);
 
     shedOpen = false;
   }
@@ -495,20 +501,20 @@ void picking(){ //Need to verify these signs
   }
   
   if (pickLeft == true){
-    runMotor(5, pickDistance);
-    delay(50); //need to confirm delay
-    runMotor(5, -pickDistance);
+    moveLeftPick(-pickDistance);
+    delay(1000); //short pause
+    moveLeftPick(pickDistance);
   } else if (pickLeft == false){
-    runMotor(6, pickDistance);
-    delay(50);
-    runMotor(6, -pickDistance);
+    moveRightPick(pickDistance);
+    delay(1000);
+    moveRightPick(-pickDistance);
   }
 }
 
 void beatUp(){
-  runMotor(7, beatupDistance);
-  delay(50); //need to confirm delay
-  runMotor(7, -beatupDistance);
+  moveBeatUp(-beatupDistance);
+  delay(3000); //pause to let vibrations die down
+  moveBeatUp(beatupDistance);
 }
 
 void scooch(){
@@ -530,18 +536,23 @@ void scooch(){
 void weaving() {
   //open shed
   shedding();
+  delay(500);
 
   //pick
   picking();
+  delay(500);
   
   //close shed
   shedding();
+  delay(500);
   
   //beat up
   beatUp();
+  delay(500);
   
   //scooch
   scooch();
+  delay(500);
 
   //increment pick counter
   Serial.print(currentPick);
