@@ -66,7 +66,7 @@ ezButton limitSwitchH2(11);
 ezButton limitSwitchReed(12);
 
 // Control variables per motor type
-bool harnessesOut = false; //boolean that dictates the direction in which harnesses move; harnessesOut = true means harnesses are "extended", false means they are on center
+bool shedOpen = false; //boolean that dictates the direction in which harnesses move; shedOpen = true means harnesses are "extended", false means they are on center
 bool pickLeft = false;     //Dictates which pick motor is activated during picking, true = left, false = right
 
 //Machine status variables
@@ -334,7 +334,7 @@ void homeHarnesses() {
     state = limitSwitchH1.getState();
     if (state == HIGH) {
       break;
-      return; //are these returns needed?
+      
     }
   }
 
@@ -349,7 +349,7 @@ void homeHarnesses() {
     state = limitSwitchH2.getState();
     if (state == HIGH) {
       break;
-      return;
+     
     }
   }
 
@@ -390,7 +390,7 @@ void shedding()  {
 
   //first pick
   if (currentPick == 1) {
-    if (harnessesOut == false) {
+    if (shedOpen == false) {
     //First Increment 
     moveH1(dirMultiplier * -h1FirstPick[1]); //h1 goes up on odd picks, down on even picks
     moveH2(dirMultiplier * h2FirstPick[1]); //h2 goes down on odd picks, up on even picks
@@ -404,8 +404,8 @@ void shedding()  {
     moveH2(dirMultiplier * h2FirstPick[3]);
     moveBackBank(-warpFirstPick[3]);
 
-    harnessesOut = true;
-  } else if (harnessesOut == true) {
+    shedOpen = true;
+  } else if ( == true) {
     //Third increment
     moveH1(dirMultiplier * h1FirstPick[3]);
     moveH2(dirMultiplier * -h2FirstPick[3]);
@@ -419,12 +419,12 @@ void shedding()  {
     moveH2(dirMultiplier * -h2FirstPick[1]);
     moveBackBank(warpFirstPick[1]);
 
-    harnessesOut = false;
+    shedOpen = false;
   }
     
     //remaining picks, get indexed through main h2 and warp arrays
   } else if (currentPick > 1) {
-    if (harnessesOut == false) {
+    if (shedOpen == false) {
     //First Increment 
     moveH1(dirMultiplier * -h1StepsArray[1]); //h1 goes up on odd picks, down on even picks
     moveH2(dirMultiplier * h2StepsArray[indexNumber][1]); //h2 goes down on odd picks, up on even picks
@@ -495,7 +495,7 @@ void scooch(){
     steppers[3].step();
     steppers[7].step();
     steppers[8].step();
-    delayMicroseconds(stepPeriodsUs[0]);
+    delayMicroseconds(stepPeriodsUs[2]);
   }
 }
 
