@@ -122,7 +122,7 @@ int bank2TensioningLocationArray[][3] = {
 int pickDistance = 787;     // Steps for picking distance
 int beatupDistance = 28;   // Steps for beat up rotation
 int scoochDistance = 13;   // Steps for tensioner to travel 0.25mm
-int harnessHome = 3955;
+int harnessHome = 3855; //Steps from harness switch to neutral plane
 
 
 
@@ -208,8 +208,26 @@ void runMotor(int stepperID, int stepsToRun) {
   delayMicroseconds(1);
 }
 
+//Front Bank Movement Function
+void moveFrontBank (int stepsToRun) {
 
-// Bank2 Movement Function
+  if (stepsToRun > 0){ //away from harnesses
+    steppers[7].setDirection(1);
+    steppers[8].setDirection(1);
+  } else{ //towards harnesses
+    steppers[7].setDirection(0);
+    steppers[8].setDirection(0);
+    stepsToRun = - stepsToRun;
+  }
+
+  for (int step = 0; step < stepsToRun; step++){
+    steppers[7].step();
+    steppers[8].step();
+    delayMicroseconds (stepPeriodsUs[7]);
+  }
+}
+
+//Back Bank Movement Function
 void moveBackBank (int stepsToRun) {
 
   if (stepsToRun > 0){ //away from harnesses
@@ -279,8 +297,8 @@ void homeReed() {
 }
 
 void homeFrontBank() {
-  steppers[7].setDirection(1); //towards harnesses
-  steppers[8].setDirection(1);  
+  steppers[7].setDirection(0); //towards harnesses
+  steppers[8].setDirection(0);  
 
   int state;
   for (int step = 0; step < 10000; step++) { //change this if too small
@@ -300,8 +318,8 @@ void homeFrontBank() {
 
 
 void homeBackBank(){
-  steppers[2].setDirection(0); //away from harnesses
-  steppers[3].setDirection(0);  
+  steppers[2].setDirection(1); //away from harnesses
+  steppers[3].setDirection(1);  
 
   int state;
   for (int step = 0; step < 10000; step++) { //change this if too small
@@ -357,13 +375,20 @@ void homeHarnesses() {
   
 }
 
+void frontOutTheWay() {
+  homeFrontBank();
+  moveFrontBank(9000);
+}
+
 void homeMachine() {
+      frontOutTheWay();
       homeReed();
       homeFrontBank();
       homeBackBank();
       homeHarnesses();
       homed = true;
 }
+
 
 //USER CONFIRMATION FUNCTION
 void waitForString() {
@@ -511,7 +536,6 @@ void weaving() {
   
   //close shed
   shedding();
-  shedOpen = false;
   
   //beat up
   beatUp();
@@ -520,9 +544,9 @@ void weaving() {
   scooch();
 
   //increment pick counter
-  Serial.println(currentPick);
-  Serial.println(" out of ");
-  Serial.println(totalPicks);
+  Serial.print(currentPick);
+  Serial.print(" out of ");
+  Serial.print(totalPicks);
   Serial.println(" completed.");
 
   currentPick++;
