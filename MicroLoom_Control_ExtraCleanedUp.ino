@@ -89,40 +89,40 @@ const int WEAVING_LED_PIN = 11; // Example pin number for the weaving LED
 // Variable distance step count array
 
 // h1 shed height array
-int h1FirstPick[] = {475, 197, 147};   //steps from neutral axis to H1 first pick height
-int h1StepsArray[] = {679, 281, 210};
+int h1FirstPick[] = {1200, 496, 403};   //steps from neutral axis to H1 first pick height
+int h1StepsArray[] = {1447, 599, 480};
 
 // h2 shed height array
-int h2FirstPick[] = {484, 200, 150};     //steps from neutral axis to H2 first pick height
+int h2FirstPick[] = {1243, 512, 415};     //steps from neutral axis to H2 first pick height
 int h2StepsArray[][3] = {
-  {701, 289, 216},
-  {700, 289, 216},
-  {698, 288, 215},
-  {697, 287, 215},
-  {695, 286, 214},
-  {693, 285, 214},
-  {690, 285, 212},
-  {688, 283, 212}
+  {1518, 625, 498},
+  {1511, 621, 496},
+  {1503, 618, 493},
+  {1494, 615, 490},
+  {1484, 610, 486},
+  {1472, 604, 482},
+  {1458, 599, 477},
+  {1442, 591, 472}
 };
 
 // bank 2 warp tensioning distance array
-int strainRegulationFirstPick[] = {32, 32, 31};      //steps from warp tensioner start position to first pick position
+int strainRegulationFirstPick[] = {103, 103, 100};      //steps from warp tensioner start position to first pick position
 int strainRegulationSteps[][3] = {
-  {81, 81, 78},
-  {83, 82, 80},
-  {84, 84, 82},
-  {86, 86, 83},
-  {88, 88, 86},
-  {90, 90, 88},
-  {93, 93, 91},
-  {96, 96, 94}
+  {170, 170, 165},
+  {174, 173, 168},
+  {177, 177, 172},
+  {181, 181, 176},
+  {186, 185, 181},
+  {191, 191, 186},
+  {197, 197, 193},
+  {203, 204, 200}
 };
 
 // Fixed distance step counts
 int pickDistance = 787;     // Steps for picking distance
-int beatupDistance = 28;   // Steps for beat up rotation
+int beatupDistance = 35;   // Steps for beat up rotation
 int scoochDistance = 13;   // Steps for tensioner to travel 0.25mm
-int harnessHome = 3855; //Steps from harness switch to neutral plane
+int harnessHome = 2650; //Steps from harness switch to neutral plane
 
 
 
