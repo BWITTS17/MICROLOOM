@@ -158,21 +158,25 @@ void setup() {
 void loop() {
   //HOMING INSTRUCTIONS
   //Homing cannot start until a confirmation button is pressed
-  if (!homed) { //homed is only set in the homeMachine() function
-    homeMachine();
-    return;
-  }
+  if (!homed) { //will run on power cycle
+    
+    //check if "home" button (H1) pressed
+    limitSwitchH1.loop();
+    int state = limitSwitchH1.getState();
+    
+    if (state == HIGH) {
+      homeMachine(); //sets homed to true at the end
+      return;
+    }
 
-
-  //check for stringing confirmation, using front bank limit switch
-  if (homed && !warpStrung) { //warpStrung is only set in waitForString() function
-    waitForString();
-    return;
+    //check if "start weave" button (H2) pressed
+    waitForStart(); //sets homed to true at the end
+    
   }
 
 
   // Main control loop for weaving
-  if (weavingActive && !error) { //waitForString() sets weavingActive = true, when pick limit reached weaving() sets weavingActive() false
+  if (weavingActive && !error) { //waitForStart() sets weavingActive = true, when pick limit reached weaving() sets weavingActive() false
       weaving();
       delay(1500);
     }
@@ -397,12 +401,12 @@ void homeMachine() {
 
 
 //USER CONFIRMATION FUNCTION
-void waitForString() {
-      limitSwitchFront.loop();
-      int state = limitSwitchFront.getState();
+void waitForStart() {
+      limitSwitchH2.loop();
+      int state = limitSwitchH2.getState();
 
       if (state == HIGH) {
-        warpStrung = true;
+        homed = true;
         weavingActive = true;
       }
 }
