@@ -280,7 +280,7 @@ void moveBeatUp (int steps){
 //HOMING FUNCTIONS
 void homeReed() {
   
-  steppers[6].setDirection(1); //set direction appropriately to move CW towards vertical
+  steppers[6].setDirection(0); //set direction appropriately to move CW towards vertical
 
   int state;
   for (int step = 0; step < 1000; step++) { //change step number if reed doesn't make it to limit switch
