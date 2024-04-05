@@ -42,17 +42,17 @@
 //Back Bank: (-, 0) = Towards Harnesses; (+, 1) = Away from Harnesses
 //Harnesses: (-, 0) = Up, (+, 1) = Down
 
-const int numOfSteppers = 11; //number of stepper motors
+const int numOfSteppers = 9; //number of stepper motors
 const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35,36}; //Chip select pins for per motor, see Motor IDs Overview
 const uint16_t stepPeriodsUs[numOfSteppers] = {1000, 1000, 1000, 1000, 1500, 1500, 15000, 1000, 1000}; //Step periods per motor (ms)
-const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
+const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
 
 //Microstepping mode per motor
 const DRV8434SStepMode stepModes[numOfSteppers] = {
       DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2, 
       DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2, 
       DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2,
-      DRV8434SStepMode::MicroStep2, DRV8434SStepMode::MicroStep2};
+      };
 
 DRV8434S steppers[numOfSteppers]; //Array to hold DRV9434S objects per motor
 
@@ -65,6 +65,20 @@ ezButton limitSwitchH1(10);
 ezButton limitSwitchH2(11);
 ezButton limitSwitchReed(12);
 
+// Reed Switch Setup for Magnetic Detection
+const int leftPickMagnetSwitch = 53; // Pin connected to reed switch
+const int rightPickMagnetSwitch = 17; // Pin connected to reed switch
+
+
+// Global variables for debouncing
+unsigned long lastDebounceTimeLeft = 0; // Last time the left switch was toggled
+unsigned long lastDebounceTimeRight = 0; // Last time the right switch was toggled
+unsigned long debounceDelay = 50; // the debounce time in milliseconds
+
+// Variables to hold the debounced state
+int leftSwitchState = LOW;
+int rightSwitchState = LOW;
+
 // Control variables per motor type
 bool shedOpen = false; //boolean that dictates the direction in which harnesses move; shedOpen = true means harnesses are "extended", false means they are on center
 bool pickLeft = false;     //Dictates which pick motor is activated during picking, true = left, false = right
@@ -76,7 +90,7 @@ bool homed = false;
 bool warpStrung = false;
 
 //Pick counter variables
-int totalPicks = 10;    //Change this to choose fabric length  
+int totalPicks = 50;    //Change this to choose fabric length  
 int currentPick = 1;   //Do not change, always 1
 
 //
@@ -122,7 +136,7 @@ int strainRegulationSteps[][3] = {
 int pickDistance = 787;     // Steps for picking distance
 int beatupDistance = 35;   // Steps for beat up rotation
 int scoochDistance = 13;   // Steps for tensioner to travel 0.25mm
-int harnessHome = 2650; //Steps from harness switch to neutral plane
+int harnessHome = 2650; //2365 //Steps from harness switch to neutral plane
 
 
 
@@ -147,7 +161,7 @@ void setup() {
     steppers[i].enableDriver();                             // Enables driver
   }
 
-  Serial.begin(9600);
+  //Reed Switch Initialization
   Serial.println("Setup complete, motors ready.");
 
   //pinMode(errorLED, OUTPUT); // Error LED
@@ -156,8 +170,11 @@ void setup() {
 
 
 void loop() {
+  
   //HOMING INSTRUCTIONS
   //Homing cannot start until a confirmation button is pressed
+  
+  
   if (!homed) { //will run on power cycle
     
     //check if "home" button (H1) pressed
@@ -567,7 +584,7 @@ void weaving() {
   currentPick++;
 
   if (currentPick > totalPicks) {
-    weavingActive == false;
+    weavingActive = false;
     Serial.println("Fabric is done.");
   }
 }
