@@ -44,7 +44,7 @@
 
 const int numOfSteppers = 11; //number of stepper motors
 const uint8_t csPins[numOfSteppers] = {28,29,30,31,32,33,34,35,36}; //Chip select pins for per motor, see Motor IDs Overview
-const uint16_t stepPeriodsUs[numOfSteppers] = {1000, 1000, 1000, 1000, 500, 500, 15000, 1000, 1000}; //Step periods per motor (ms)
+const uint16_t stepPeriodsUs[numOfSteppers] = {1000, 1000, 1000, 1000, 1500, 1500, 15000, 1000, 1000}; //Step periods per motor (ms)
 const uint16_t currentLimits[numOfSteppers] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}; //Current limits per motor (mA)
 
 //Microstepping mode per motor
@@ -89,7 +89,7 @@ const int WEAVING_LED_PIN = 11; // Example pin number for the weaving LED
 // Variable distance step count array
 
 // h1 shed height array
-int h1FirstPick[] = {1200, 496, 403};   //steps from neutral axis to H1 first pick height
+int h1FirstPick[] = {1300, 550, 440};   //steps from neutral axis to H1 first pick height
 int h1StepsArray[] = {1447, 599, 480};
 
 // h2 shed height array
@@ -516,9 +516,9 @@ void picking(){ //Need to verify these signs
 }
 
 void beatUp(){
-  moveBeatUp(-beatupDistance);
-  delay(3000); //pause to let vibrations die down
   moveBeatUp(beatupDistance);
+  delay(3000); //pause to let vibrations die down
+  moveBeatUp(-beatupDistance);
 }
 
 void scooch(){
@@ -555,7 +555,7 @@ void weaving() {
   delay(500);
   
   //scooch
-  scooch();
+  //scooch();
   delay(500);
 
   //increment pick counter
