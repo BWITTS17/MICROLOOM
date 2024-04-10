@@ -136,7 +136,7 @@ int strainRegulationSteps[][3] = {
 int pickDistance = 787;     // Steps for picking distance
 int beatupDistance = 35;   // Steps for beat up rotation
 int scoochDistance = 13;   // Steps for tensioner to travel 0.25mm
-int harnessHome = 2650; //2365 //Steps from harness switch to neutral plane
+int harnessHome = 2435; //2365 //2650 //Steps from harness switch to neutral plane
 
 
 
