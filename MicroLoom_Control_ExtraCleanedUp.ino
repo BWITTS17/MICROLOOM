@@ -451,7 +451,7 @@ void shedding()  {
     //Second increment
     moveH1(dirMultiplier * -h1FirstPick[1]);
     moveH2(dirMultiplier * h2FirstPick[1]);
-    moveBackBank(-strainRegulationFirstPick[2]);
+    moveBackBank(-strainRegulationFirstPick[1]);
     Serial.println("second done");
     //Third increment
     moveH1(dirMultiplier * -h1FirstPick[2]);
@@ -462,17 +462,17 @@ void shedding()  {
     shedOpen = true;
   } else if (shedOpen == true) {
     //Third increment
-    moveH1(dirMultiplier * h1FirstPick[0]);
-    moveH2(dirMultiplier * -h2FirstPick[0]);
-    moveBackBank(strainRegulationFirstPick[3]); //(+) = away from harnesses
+    moveH1(dirMultiplier * h1FirstPick[2]);
+    moveH2(dirMultiplier * -h2FirstPick[2]);
+    moveBackBank(strainRegulationFirstPick[2]); //(+) = away from harnesses
     //Second increment
     moveH1(dirMultiplier * h1FirstPick[1]);
     moveH2(dirMultiplier * -h2FirstPick[1]);
     moveBackBank(strainRegulationFirstPick[1]);
     //First Increment 
-    moveH1(dirMultiplier * h1FirstPick[2]);
-    moveH2(dirMultiplier * -h2FirstPick[2]);
-    moveBackBank(strainRegulationFirstPick[1]);
+    moveH1(dirMultiplier * h1FirstPick[0]);
+    moveH2(dirMultiplier * -h2FirstPick[0]);
+    moveBackBank(strainRegulationFirstPick[0]);
 
     shedOpen = false;
   }
